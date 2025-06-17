@@ -1,0 +1,83 @@
+<svg width="100%" height="100%" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="none">
+  <defs>
+    <!-- Cool blue radial gradient -->
+    <radialGradient id="bgGradientLightBlue" cx="50%" cy="50%" r="80%">
+      <stop offset="0%" stop-color="#d5e1f9"/>
+      <stop offset="60%" stop-color="#c3d3f1"/>
+      <stop offset="100%" stop-color="#b0c4e8"/>
+    </radialGradient>
+
+    <!-- Enhanced swirling pattern filter -->
+    <filter id="duneNoiseLightBlue" x="0%" y="0%" width="100%" height="100%">
+      <!-- Primary swirling turbulence -->
+      <feTurbulence 
+        type="fractalNoise" 
+        baseFrequency="0.025 0.018" 
+        numOctaves="5" 
+        seed="56" 
+        result="noise1"/>
+      
+      <!-- Secondary fine detail turbulence -->
+      <feTurbulence 
+        type="fractalNoise" 
+        baseFrequency="0.09 0.07" 
+        numOctaves="3" 
+        seed="91" 
+        result="noise2"/>
+      
+      <!-- Displacement map for swirling effect -->
+      <feDisplacementMap in="noise1" in2="noise2" scale="12" result="displaced"/>
+      
+      <!-- Convert to visible dark pattern -->
+      <feColorMatrix 
+        in="displaced" 
+        type="matrix"
+        values="
+          0 0 0 0 0.1
+          0 0 0 0 0.2
+          0 0 0 0 0.4
+          0 0 0 0.3 0"/>
+      
+      <!-- Add subtle blur for smoothness -->
+      <feGaussianBlur stdDeviation="0.5"/>
+    </filter>
+
+    <!-- Additional organic swirl overlay -->
+    <filter id="organicSwirl" x="0%" y="0%" width="100%" height="100%">
+      <feTurbulence 
+        type="turbulence" 
+        baseFrequency="0.015 0.022" 
+        numOctaves="4" 
+        seed="124" 
+        result="organic"/>
+      
+      <feColorMatrix 
+        in="organic" 
+        type="matrix"
+        values="
+          0 0 0 0 0.2
+          0 0 0 0 0.3
+          0 0 0 0 0.6
+          0 0 0 0.25 0"/>
+    </filter>
+  </defs>
+
+  <!-- Blue gradient background -->
+  <rect width="100%" height="100%" fill="url(#bgGradientLightBlue)" />
+
+  <!-- Primary swirling pattern -->
+  <rect 
+    width="100%" 
+    height="100%" 
+    fill="#1e40af" 
+    filter="url(#duneNoiseLightBlue)"
+    opacity="0.4" />
+
+  <!-- Secondary organic swirl -->
+  <rect 
+    width="100%" 
+    height="100%" 
+    fill="#3730a3" 
+    filter="url(#organicSwirl)"
+    opacity="0.2" />
+</svg>
