@@ -19,21 +19,39 @@ type Thesis = {
 };
 
 async function fetchRepos(): Promise<Repo[]> {
-  const res = await fetch(`${backend}/api/repos`, { next: { revalidate: 3600 } });
-  if (!res.ok) throw new Error("Failed to fetch repos");
-  return res.json();
+  try {
+    const res = await fetch(`${backend}/api/repos`, {
+      next: { revalidate: 3600 },
+    });
+    if (!res.ok) return [];
+    return res.json();
+  } catch {
+    return [];
+  }
 }
 
 async function fetchThesis(): Promise<Thesis | null> {
-  const res = await fetch(`${backend}/api/thesis`, { next: { revalidate: 86400 } });
-  if (!res.ok) return null;
-  return res.json();
+  try {
+    const res = await fetch(`${backend}/api/thesis`, {
+      next: { revalidate: 86400 },
+    });
+    if (!res.ok) return null;
+    return res.json();
+  } catch {
+    return null;
+  }
 }
 
 async function fetchProfile(): Promise<Profile | null> {
-  const res = await fetch(`${backend}/api/profile`, { next: { revalidate: 86400 } });
-  if (!res.ok) return null;
-  return res.json();
+  try {
+    const res = await fetch(`${backend}/api/profile`, {
+      next: { revalidate: 86400 },
+    });
+    if (!res.ok) return null;
+    return res.json();
+  } catch {
+    return null;
+  }
 }
 
 export default async function Home() {

@@ -11,9 +11,15 @@ type Thesis = {
 };
 
 async function fetchThesis(): Promise<Thesis> {
-  const res = await fetch(`${backend}/api/thesis`, { next: { revalidate: 86400 } });
-  if (!res.ok) throw new Error("Failed to fetch thesis");
-  return res.json();
+  try {
+    const res = await fetch(`${backend}/api/thesis`, {
+      next: { revalidate: 86400 },
+    });
+    if (!res.ok) throw new Error("Failed to fetch thesis");
+    return res.json();
+  } catch {
+    return { title: "Thesis" } as Thesis;
+  }
 }
 
 export default async function ThesisPage() {
