@@ -1,8 +1,9 @@
 import Section from "@/components/Section";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Carousel } from "@/components/ui/carousel";
+import { getBackendUrl } from "@/lib/backend";
 
-const backend = process.env.NEXT_PUBLIC_BACKEND_URL ?? "http://localhost:8000";
+const backend = getBackendUrl();
 
 type Thesis = {
   title: string;

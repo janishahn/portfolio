@@ -4,8 +4,9 @@ import useSWR from "swr";
 import RepoCard, { Repo } from "./RepoCard";
 import dynamic from "next/dynamic";
 import { useState } from "react";
+import { getBackendUrl } from "@/lib/backend";
 
-const backend = process.env.NEXT_PUBLIC_BACKEND_URL ?? "http://localhost:8000";
+const backend = getBackendUrl();
 
 const fetcher = (url: string) => fetch(url).then((r) => r.json());
 

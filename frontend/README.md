@@ -58,6 +58,27 @@ npm run dev
 
 The app will be available at [http://localhost:3000](http://localhost:3000) (or your chosen port).
 
+## Production Builds
+
+When you create a production build (`npm run build`) and later start it with `npm start`, **Next.js will _not_ load values from `.env.local`**. In production mode the framework only considers `.env.production`, `.env.production.local`, or environment variables that are already present in the shell.
+
+If you need to run the built app on a custom port (e.g. `8003`) you therefore have two options:
+
+1. Export the variable at runtime:
+
+   ```bash
+   PORT=8003 npm start
+   ```
+
+2. Create a `.env.production.local` file next to `package.json` with the same contents you previously had in `.env.local`:
+
+   ```env
+   PORT=8003
+   NEXT_PUBLIC_BACKEND_URL=http://localhost:8012
+   ```
+
+Either approach will make `next start` listen on the defined port.
+
 ---
 
 # Nginx Reverse Proxy
