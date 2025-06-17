@@ -4,7 +4,7 @@ export function getBackendUrl(): string {
     return (
       process.env.BACKEND_URL ||
       process.env.NEXT_PUBLIC_BACKEND_URL ||
-      "http://localhost:8012"
+      "http://127.0.0.1:8012"
     );
   }
 
