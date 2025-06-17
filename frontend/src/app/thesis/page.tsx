@@ -54,7 +54,7 @@ export default async function ThesisPage() {
           <div className="flex flex-col items-center gap-4">
             <Carousel className="max-w-3xl">
               {images.map((asset: string, idx: number) => {
-                const url = asset.startsWith("http") ? asset : `${backend}${asset}`;
+                const url = asset.startsWith("http") ? asset : asset;
                 return (
                   <img
                     key={idx}
@@ -72,7 +72,7 @@ export default async function ThesisPage() {
         )}
 
         {pdfs.map((asset: string, idx: number) => {
-          const url = asset.startsWith("http") ? asset : `${backend}${asset}`;
+          const url = asset.startsWith("http") ? asset : asset;
           return (
             <div key={idx} className="flex flex-col items-center gap-2">
               <iframe
