@@ -7,7 +7,7 @@ __pycache__/
 *.env.local
 node_modules/
 
-backend/static/
+ui/dist/
 
 # dependencies
 /node_modules
@@ -21,10 +21,6 @@ backend/static/
 
 # testing
 /coverage
-
-# next.js
-*.next/
-/out/
 
 # production
 /build
@@ -47,4 +43,3 @@ yarn-error.log*
 
 # typescript
 *.tsbuildinfo
-next-env.d.ts

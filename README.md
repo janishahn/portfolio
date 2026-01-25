@@ -1,36 +1,38 @@
 # Portfolio Project
 
-This project is modular, with a FastAPI backend and a Next.js frontend, designed to be served via Nginx locally.
+This project uses a FastAPI backend with a Vite + React + TypeScript frontend, served under the same origin.
 
 ## Structure
-- **backend/**: FastAPI app (Python)
-- **frontend/**: Next.js app (React/TypeScript)
+- `app/`: FastAPI app (`app.main:app`)
+- `ui/`: Vite + React + TypeScript frontend
+- `scripts/`: Dev workflow helpers
 
 ## Configuration
-- **Backend**: Port can be set via command line (`python start.py --port=8000`).
-- **Frontend**: Port and backend API URL are set in `frontend/.env.local` (see `frontend/.env.local.example`).
-- **Nginx**: Proxies `/api` to backend, `/` to frontend. Example config:
-  ```nginx
-  server {
-      listen 8080;
-      location /api/ {
-          proxy_pass http://localhost:8000/api/;
-      }
-      location / {
-          proxy_pass http://localhost:3000/;
-      }
-  }
-  ```
+- Create a local `.env` (see `.env.example`).
+- The frontend relies on same-origin `/api` requests in dev via the Vite proxy.
 
 ## Running Locally
-1. Start the backend:
-   ```sh
-   cd backend
-   python start.py --port=8000
-   ```
-2. Start the frontend:
-   ```sh
-   cd frontend
-   npm run dev
-   ```
-3. Access the app via Nginx at [http://localhost:8080](http://localhost:8080) 
+Option A: one command (recommended)
+```sh
+uv run python scripts/dev.py
+```
+
+Option B: two processes
+```sh
+# Backend
+uv run uvicorn app.main:app --reload --port 8000
+
+# Frontend
+cd ui
+npm run dev -- --port 5173
+```
+
+## Production Build
+```sh
+cd ui
+npm run build
+cd ..
+uv run uvicorn app.main:app --host 0.0.0.0 --port 8000
+```
+
+The built SPA is served from `ui/dist` at `/`, and the API is served under `/api`.
