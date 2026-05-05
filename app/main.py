@@ -8,7 +8,7 @@ from typing import Any, Dict, List, Optional
 
 import orjson
 from fastapi import FastAPI, HTTPException
-from fastapi.responses import JSONResponse
+from fastapi.responses import FileResponse, JSONResponse, Response
 from fastapi.staticfiles import StaticFiles
 import yaml
 import httpx
@@ -32,6 +32,7 @@ MEDIA_DIR = STATIC_DIR / "media"
 PROFILE_FILE = STATIC_DIR / "profile.yaml"
 SUMMARY_FILE = STATIC_DIR / "summaries.json"
 UI_DIST_DIR = BASE_DIR.parent / "ui" / "dist"
+UI_ASSETS_DIR = UI_DIST_DIR / "assets"
 
 CACHE_TTL = timedelta(hours=24)
 
@@ -77,6 +78,11 @@ app = FastAPI(default_response_class=JSONResponse, title="Personal Portfolio API
 
 # Serve media assets
 app.mount("/media", StaticFiles(directory=str(MEDIA_DIR)), name="media")
+app.mount(
+    "/assets",
+    StaticFiles(directory=str(UI_ASSETS_DIR), check_dir=False),
+    name="ui-assets",
+)
 
 
 # ---------------------------------------------------------------------------
@@ -245,14 +251,19 @@ async def _refresh_cache(force: bool = False) -> None:
 
 async def _load_or_refresh_cache() -> None:
     data = _read_cache()
-    if data and _cache_fresh(data.get("timestamp", "")):
+    if data:
         global _repo_list, _repo_detail, _readme_html
         _repo_list = data.get("repos", [])
         _repo_detail = data.get("repo_detail", {})
         _readme_html = data.get("readmes", {})
-        # Summaries are loaded separately at startup
-    else:
+
+        if _cache_fresh(data.get("timestamp", "")):
+            return
+
+    try:
         await _refresh_cache(force=True)
+    except httpx.HTTPError as exc:
+        logger.warning("Failed to refresh GitHub cache: %s", exc)
 
 
 # ---------------------------------------------------------------------------
@@ -308,7 +319,12 @@ async def get_repo(name: str) -> Dict[str, Any]:
         asyncio.create_task(_generate_missing_summaries([name]))
         summary = ""
 
-    return {**repo, "readme_summary": summary or "", "readme_html": readme_html}
+    return {
+        **repo,
+        "readme_summary": summary or "",
+        "readme_summary_model": settings.openrouter_summary_model,
+        "readme_html": readme_html,
+    }
 
 
 @app.get("/api/thesis")
@@ -322,8 +338,28 @@ async def profile_data() -> Dict[str, Any]:
     return _profile_data
 
 
-if UI_DIST_DIR.is_dir():
-    app.mount("/", StaticFiles(directory=str(UI_DIST_DIR), html=True), name="ui")
+def _frontend_index_response(frontend_path: str = "") -> Response:
+    if not UI_DIST_DIR.is_dir():
+        return Response(
+            "Frontend build not found. Build it with `cd ui && npm run build`.",
+            media_type="text/plain",
+            status_code=503,
+        )
+
+    if frontend_path and "/" not in frontend_path:
+        static_file = UI_DIST_DIR / frontend_path
+        if static_file.is_file():
+            return FileResponse(static_file)
+
+    return FileResponse(UI_DIST_DIR / "index.html")
+
+
+@app.get("/", include_in_schema=False)
+@app.get("/{frontend_path:path}", include_in_schema=False)
+def frontend_entry(frontend_path: str = "") -> Response:
+    if frontend_path.startswith(("api/", "assets/", "media/")):
+        raise HTTPException(status_code=404)
+    return _frontend_index_response(frontend_path)
 
 
 async def _generate_summary(

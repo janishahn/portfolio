@@ -30,9 +30,10 @@ npm run dev -- --port 5173
 ## Production Build
 ```sh
 cd ui
+npm i
 npm run build
 cd ..
-uv run uvicorn app.main:app --host 0.0.0.0 --port 8000
+./start.sh
 ```
 
 The built SPA is served from `ui/dist` at `/`, and the API is served under `/api`.

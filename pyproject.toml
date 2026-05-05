@@ -14,7 +14,17 @@ dependencies = [
     "uvicorn>=0.40.0",
 ]
 
+[project.scripts]
+dev = "app.cli.dev:main"
+
 [dependency-groups]
 dev = [
     "ruff>=0.14.14",
 ]
+
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools.packages.find]
+include = ["app*"]

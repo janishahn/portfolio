@@ -13,15 +13,13 @@ class GitHubClient:
 
     _BASE_URL = "https://api.github.com"
 
-    def __init__(self, token: Optional[str] = None) -> None:
+    def __init__(self, username: str) -> None:
         self._headers = {
             "Accept": "application/vnd.github.v3+json",
             "User-Agent": "personal-portfolio-app",
         }
-        if token:
-            self._headers["Authorization"] = f"token {token}"
         self._client: Optional[httpx.AsyncClient] = None
-        self._username: Optional[str] = None
+        self._username = username
 
     async def _ensure_client(self) -> httpx.AsyncClient:
         if self._client is None:
@@ -30,36 +28,27 @@ class GitHubClient:
             )
         return self._client
 
-    async def _ensure_username(self) -> str:
-        if self._username is None:
-            client = await self._ensure_client()
-            resp = await client.get("/user")
-            resp.raise_for_status()
-            self._username = resp.json().get("login")
-        return self._username  # type: ignore[return-value]
-
     async def fetch_repos(self) -> List[Dict[str, Any]]:
-        """Return public repos for the authenticated user (max 100)."""
+        """Return public repos for the configured GitHub user (max 100)."""
         client = await self._ensure_client()
-        username = await self._ensure_username()
         params = {"per_page": 100, "type": "public", "sort": "updated"}
-        resp = await client.get(f"/users/{username}/repos", params=params)
+        resp = await client.get(f"/users/{self._username}/repos", params=params)
         resp.raise_for_status()
         return resp.json()
 
     async def fetch_repo(self, name: str) -> Dict[str, Any]:
         client = await self._ensure_client()
-        username = await self._ensure_username()
-        resp = await client.get(f"/repos/{username}/{name}")
+        resp = await client.get(f"/repos/{self._username}/{name}")
         resp.raise_for_status()
         return resp.json()
 
     async def fetch_readme_html(self, name: str) -> str:
         """Return GitHub-rendered README HTML without stripping heading and formatting tags."""
         client = await self._ensure_client()
-        username = await self._ensure_username()
         headers = {**self._headers, "Accept": "application/vnd.github.v3.html"}
-        resp = await client.get(f"/repos/{username}/{name}/readme", headers=headers)
+        resp = await client.get(
+            f"/repos/{self._username}/{name}/readme", headers=headers
+        )
         if resp.status_code == 404:
             return ""
         resp.raise_for_status()
@@ -88,18 +77,17 @@ class GitHubClient:
             branch is used.
         """
         client = await self._ensure_client()
-        username = await self._ensure_username()
 
         # Resolve ref lazily to avoid extra request when caller already knows it.
         if ref is None:
             # Fetch repo details (small cost; cached by caller most of the time)
-            repo_resp = await client.get(f"/repos/{username}/{name}")
+            repo_resp = await client.get(f"/repos/{self._username}/{name}")
             repo_resp.raise_for_status()
             ref = repo_resp.json().get("default_branch", "main")
 
         params = {"recursive": 1}
         resp = await client.get(
-            f"/repos/{username}/{name}/git/trees/{ref}", params=params
+            f"/repos/{self._username}/{name}/git/trees/{ref}", params=params
         )
         resp.raise_for_status()
         data = resp.json()
@@ -112,11 +100,10 @@ class GitHubClient:
         content type cannot be decoded as UTF-8.
         """
         client = await self._ensure_client()
-        username = await self._ensure_username()
 
         headers = {**self._headers, "Accept": "application/vnd.github.v3.raw"}
         resp = await client.get(
-            f"/repos/{username}/{name}/contents/{path}", headers=headers
+            f"/repos/{self._username}/{name}/contents/{path}", headers=headers
         )
         if resp.status_code == 404:
             return ""
@@ -140,5 +127,5 @@ async def get_client() -> GitHubClient:
     global _cached_client
     async with _client_lock:
         if _cached_client is None:
-            _cached_client = GitHubClient(token=settings.github_token)
+            _cached_client = GitHubClient(username=settings.github_username)
         return _cached_client

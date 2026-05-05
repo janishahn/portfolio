@@ -2,7 +2,7 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
 class Settings(BaseSettings):
-    github_token: str = ""
+    github_username: str = "janishahn"
     openrouter_api_key: str = ""
     openrouter_summary_model: str = "google/gemma-3-27b-it:free"
 

@@ -2,7 +2,6 @@
 
 interface ImportMetaEnv {
   readonly VITE_BACKEND_URL?: string
-  readonly VITE_SUMMARY_MODEL?: string
 }
 
 interface ImportMeta {
